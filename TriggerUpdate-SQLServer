@@ -1,0 +1,144 @@
+ALTER trigger "AFCEupdate" on "AFCE" 
+for update 
+
+as
+
+BEGIN
+  declare
+	@rowsAffected int,
+	@nullRows int,
+	@validRows int, 
+	@errorNumber int,
+	@errorMsg varchar(255)
+
+  select @rowsAffected = @@rowcount
+
+  /* Clause for ON UPDATE to referencing table : NO ACTION. */
+  if update("spending_categ_id")
+    begin
+      select @nullRows = 0
+
+      select @validRows = count(*)
+      from inserted inner join [AFCE_Spending_Category]
+      on inserted.[spending_categ_id] = [AFCE_Spending_Category].[spending_categ_id]
+
+      if @validRows != @rowsAffected
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot insert/update into table "AFCE" because the values entered for "spending_categ_id" in "AFCE" must correspond to the values of primary key column(s) of the table "AFCE_Spending_Category"'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referencing table : NO ACTION. */
+  if update("cost_categ_id")
+    begin
+      select @nullRows = 0
+
+      select @validRows = count(*)
+      from inserted inner join [AFCE_Cost_Category]
+      on inserted.[cost_categ_id] = [AFCE_Cost_Category].[cost_categ_id]
+
+      if @validRows != @rowsAffected
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot insert/update into table "AFCE" because the values entered for "cost_categ_id" in "AFCE" must correspond to the values of primary key column(s) of the table "AFCE_Cost_Category"'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referenced table : CASCADE */
+  if update("afce_id")
+    begin
+      if @rowsAffected = 1
+        begin
+          update [AFCE_Direct_Costs]
+          set [AFCE_Direct_Costs].[afce_id] = inserted.[afce_id]
+          from inserted inner join deleted on inserted.[afce_id]=deleted.[afce_id]
+		  inner join [AFCE_Direct_Costs] on [AFCE_Direct_Costs].[afce_id]=deleted.[afce_id]
+        end
+      else
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot cascade values "afce_id" updated in table "AFCE" because more than one row has been updated.'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referenced table : CASCADE */
+  if update("afce_id")
+    begin
+      if @rowsAffected = 1
+        begin
+          update [AFCE_Yearly_Costs]
+          set [AFCE_Yearly_Costs].[afce_id]=inserted.[afce_id]
+          from inserted inner join deleted on inserted.[afce_id]=deleted.[afce_id]
+		  inner join [AFCE_Yearly_Costs] on [AFCE_Yearly_Costs].[afce_id] = deleted.[afce_id]
+        end
+      else
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot cascade values "afce_id" updated in table "AFCE" because more than one row has been updated.'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referenced table : CASCADE */
+  if update("afce_id")
+    begin
+      if @rowsAffected = 1
+        begin
+          update [AFCE_File_Attachments]
+          set [AFCE_File_Attachments].[afce_id] = inserted.[afce_id]
+          from inserted inner join deleted on inserted.[afce_id]=deleted.[afce_id]
+		  inner join [AFCE_File_Attachments] on [AFCE_File_Attachments].[afce_id] = deleted.[afce_id]
+        end
+      else
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot cascade values "afce_id" updated in table "AFCE" because more than one row has been updated.'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referenced table : CASCADE */
+  if update("afce_id")
+    begin
+      if @rowsAffected = 1
+        begin
+          update [AFCE_Approval]
+          set [AFCE_Approval].[afce_id] = inserted.[afce_id]
+          from inserted inner join deleted on inserted.[afce_id]=deleted.[afce_id]
+		  inner join [AFCE_Approval] on [AFCE_Approval].[afce_id] = deleted.[afce_id]
+        end
+      else
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot cascade values "afce_id" updated in table "AFCE" because more than one row has been updated.'
+          goto errorHandler
+        end
+    end
+
+  /* Clause for ON UPDATE to referenced table : CASCADE */
+  if update("afce_id")
+    begin
+      if @rowsAffected = 1
+        begin
+          update [AFCE_Justifications]
+          set [AFCE_Justifications].[afce_id] = inserted.[afce_id]
+          from inserted inner join deleted on inserted.[afce_id]=deleted.[afce_id]
+		  inner join [AFCE_Justifications] on [AFCE_Justifications].[afce_id] = deleted.[afce_id]
+        end
+      else
+        begin
+          select @errorNumber = 16,
+          @errorMsg = 'Cannot cascade values "afce_id" updated in table "AFCE" because more than one row has been updated.'
+          goto errorHandler
+        end
+    end
+
+  return
+  errorHandler:
+    raiserror(@errorMsg, @errorNumber, 1)
+	rollback transaction
+END
