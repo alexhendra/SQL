@@ -1,0 +1,5 @@
+sp_helptext => berguna untuk melihat text dari SP
+
+sp_help => berguna untuk melihat struktur table
+
+sp_tables => berguna untuk melihat daftar table yang ada di database
